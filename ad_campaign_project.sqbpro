@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?><sqlb_project><db path="ad_campaign_project.db" readonly="0" foreign_keys="1" case_sensitive_like="0" temp_store="0" wal_autocheckpoint="1000" synchronous="2"/><attached/><window><main_tabs open="structure browser pragmas query" current="3"/></window><tab_structure><column_width id="0" width="300"/><column_width id="1" width="0"/><column_width id="2" width="100"/><column_width id="3" width="968"/><column_width id="4" width="0"/><expanded_item id="0" parent="1"/><expanded_item id="0" parent="0"/><expanded_item id="1" parent="1"/><expanded_item id="2" parent="1"/><expanded_item id="3" parent="1"/></tab_structure><tab_browse><table title="ad_data" custom_title="0" dock_id="1" table="4,7:mainad_data"/><dock_state state="000000ff00000000fd0000000100000002000002480000020bfc0100000001fb000000160064006f0063006b00420072006f00770073006500310100000000000002480000012400ffffff000002480000000000000004000000040000000800000008fc00000000"/><default_encoding codec=""/><browse_table_settings><table schema="main" name="ad_data" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_" freeze_columns="0"><sort/><column_widths><column index="1" value="85"/><column index="2" value="85"/><column index="3" value="93"/><column index="4" value="54"/><column index="5" value="62"/><column index="6" value="78"/><column index="7" value="93"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table></browse_table_settings></tab_browse><tab_sql><sql name="SQL 1*">SELECT Channel,
+ sum(Impressions) as total_impressions,
+ sum(Clicks) as total_clicks,
+ sum(Spend) as total_spend
+ from ad_data
+ group by Channel
+ 
+
+-- Total Spend per Channel
+ select Channel, sum(Spend) as total_spend
+ from ad_data
+ group by Channel
+ 
+--Total Clicks and Impressions per Day
+select Channel , sum(clicks) as total_clicks,
+ sum(impressions) as total_imp 
+ from ad_data
+ group by channel
+
+--Key marketing KPIs 
+--CTR(Click through rate)(%) by Channel
+select channel,
+round(sum(clicks) * 100.0/sum(impressions) , 3) as CTR_percentage
+from ad_data
+group by channel
+
+--Signup Rate (%) and Purchase Rate (%)
+select Channel,
+sum(signups)*100.00 / sum(clicks) as signup_rate,
+sum(Purchases)*100.00 / sum(signups) as purchase_rate
+from ad_data
+group by Channel
+
+--Cost metrics
+--cost per acquisition (cpa)
+
+select Channel,
+round (sum(spend)/sum(Purchases) , 2) as CPA_INR
+from ad_data
+group by Channel
+
+-- Cost per Click (CPC) and Cost per Signup
+SELECT Channel,
+       round((Spend) / SUM(Clicks) , 2) AS CPC,
+       round(SUM(Spend) / SUM(Signups) , 2) AS Cost_Per_Signup
+FROM ad_data
+GROUP BY Channel;
+
+--Trends and Rankings
+--Day with Highest Spend
+
+SELECT Date, SUM(Spend) AS Total_Spend
+FROM ad_data
+GROUP BY Date
+ORDER BY Total_Spend DESC
+LIMIT 1;
+
+-- top 3 Performing Days by CTR
+SELECT Date,
+       SUM(Clicks) * 100.0 / SUM(Impressions) AS CTR
+FROM ad_data
+GROUP BY Date
+ORDER BY CTR DESC
+LIMIT 3;
+
+
+--Funnel Analysis
+-- Funnel Drop-off Ratios (per Channel)
+SELECT Channel,
+       SUM(Clicks) * 1.0 / SUM(Impressions) AS Click_Rate,
+       SUM(Signups) * 1.0 / SUM(Clicks) AS Signup_Rate,
+       SUM(Purchases) * 1.0 / SUM(Signups) AS Purchase_Rate
+FROM ad_data
+GROUP BY Channel;
+
+--Time Series Analysis
+--Cumulative Spend Over Time
+SELECT Date,
+       SUM(Spend) OVER (ORDER BY Date ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS Cumulative_Spend
+FROM ad_data;
+
+
+--KPI Summary
+SELECT
+    Channel,
+    SUM(Impressions) AS Impressions,
+    SUM(Clicks) AS Clicks,
+    ROUND(SUM(Clicks)*100.0 / SUM(Impressions), 2) AS CTR,
+    SUM(Signups) AS Signups,
+    ROUND(SUM(Signups)*100.0 / SUM(Clicks), 2) AS Signup_Rate,
+    SUM(Purchases) AS Purchases,
+    ROUND(SUM(Purchases)*100.0 / SUM(Signups), 2) AS Purchase_Rate,
+    ROUND(SUM(Spend) / SUM(Purchases), 2) AS CPA
+FROM ad_data
+GROUP BY Channel;
+</sql><current_tab id="0"/></tab_sql></sqlb_project>
